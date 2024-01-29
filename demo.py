@@ -60,7 +60,7 @@ def load_image():
         mask = np.asarray(Image.open(mask_path))
         if mask.ndim < 3:
             mask = mask[..., np.newaxis]
-        mask = (mask > 0).astype(np.float)
+        mask = (mask > 0).astype(float)
         fg = image * mask + (1 - mask)  # white bg
     else:
         fg = image

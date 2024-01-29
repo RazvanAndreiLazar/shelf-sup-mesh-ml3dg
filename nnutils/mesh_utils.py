@@ -73,6 +73,7 @@ def view_vox2mesh_py3d(view):
     """
     view = view.clone()
     view, f = torch.split(view, [6, 1], dim=1)
+    view = view.clone()
     view[:, 0] = -view[:, 0]
     f = (f * 2).squeeze(1)
 
@@ -165,6 +166,7 @@ def render_normals(meshes: Meshes, out_size, view_param, **kwargs):
     image = torch.flip(image, dims=[-3])
     image = image.transpose(-1, -2).transpose(-2, -3)  # H, 4, W --> 4, H, W
     rgb, mask = torch.split(image, [image.size(1) - 1, 1], dim=1)  # [0-1]
+    rgb = rgb.clone()
 
     # align w/ my def
     # flip r (x), b (z)

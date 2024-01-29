@@ -17,7 +17,7 @@ class Ebay(BaseData):
         if split == 'test':
             split = 'val'
         super().__init__(cfg, dataset, split, train)
-        self.root_dir = 'data/ebay'
+        self.root_dir = '/mnt/vol_c/data/ebay'
         self.image_dir = os.path.join(self.root_dir, 'images/chair_final')
         self.preload_anno()
         # 1028 train 24 test

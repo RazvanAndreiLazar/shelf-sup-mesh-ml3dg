@@ -22,7 +22,7 @@ class P3dPlus(BaseData):
             'pmMotor': 'motorbike'
         }
         self.cls = name_dict[self.dataset]
-        self.root_dir = 'data/p3d'
+        self.root_dir = '/mnt/vol_c/data/p3d'
         self.image_dir = os.path.join(self.root_dir, 'Images/')
         self.preload_ann()
         print('p3d %s: ' % split, len(self))

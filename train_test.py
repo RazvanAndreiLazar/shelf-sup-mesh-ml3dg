@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 
 import torch
+torch.cuda.is_available()
 
 from models.trainer import TrainerFactory
 from models.evaluator import Evaluator
@@ -15,6 +16,7 @@ from config.config_flag import *
 FLAGS = flags.FLAGS
 
 def main(_):
+    torch.autograd.set_detect_anomaly(True)
     train_test()
 
 def train_test():
@@ -45,4 +47,5 @@ def train_test():
 
 
 if __name__ == '__main__':
+    torch.cuda.device_count()
     app.run(main)

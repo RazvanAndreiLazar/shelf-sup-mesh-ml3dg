@@ -7,7 +7,7 @@ import re
 
 import torch
 from pytorch3d.structures import Meshes, join_meshes_as_batch
-from torch._six import container_abcs, string_classes, int_classes
+import collections.abc as container_abcs
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
 
@@ -97,7 +97,7 @@ def collate_meshes(batch):
             # shared memory tensor to avoid an extra copy
             numel = sum([x.numel() for x in batch])
             storage = elem.storage()._new_shared(numel)
-            out = elem.new(storage)
+            out = elem.new(storage).view(-1, *list(elem.size()))
         return torch.stack(batch, 0, out=out)
     elif isinstance(elem, Meshes):
         return join_meshes_as_batch(batch)
@@ -114,9 +114,9 @@ def collate_meshes(batch):
             return torch.as_tensor(batch)
     elif isinstance(elem, float):
         return torch.tensor(batch, dtype=torch.float64)
-    elif isinstance(elem, int_classes):
+    elif isinstance(elem, int):
         return torch.tensor(batch)
-    elif isinstance(elem, string_classes):
+    elif isinstance(elem, str):
         return batch
     elif isinstance(elem, container_abcs.Mapping):
         return {key: collate_meshes([d[key] for d in batch]) for key in elem}

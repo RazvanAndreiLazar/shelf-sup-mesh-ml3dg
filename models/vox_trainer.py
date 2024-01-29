@@ -113,12 +113,14 @@ class VoxTrainer(BaseTrainer):
                     self.G.encoder(samp[key].detach()), sample_z, param_u2, 'hallc', FLAGS.content_loss)
 
         # Decoder step
+        self.gen_opt.zero_grad()
         g_loss.backward(retain_graph=True)
-        self.gen_opt.step()
         # Encoder step
-        self.G.encoder.zero_grad()
+        self.e_opt.zero_grad()
         e_loss.backward()
+
         self.e_opt.step()
+        self.gen_opt.step()
 
         # register some output
         self.view = {'recon': param_u, 'holo': holo_u}
