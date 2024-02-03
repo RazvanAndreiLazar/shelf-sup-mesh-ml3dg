@@ -14,6 +14,7 @@ from nnutils import mesh_utils, geom_utils
 from nnutils.layers import *
 from .transformation import Perspective3d
 from .encoder import EncoderFactory
+from .triplane import *
 
 FLAGS = flags.FLAGS
 
@@ -40,6 +41,7 @@ class ReconstructModel(nn.Module):
 
 def Infer3DFactory(name, num_layers, gf_dim, z_dim, norm):
     infer_dict = {
+        'triplane': TriplaneInfer3D,
         'style': StyleInfer3D,
     }
     if name in infer_dict:

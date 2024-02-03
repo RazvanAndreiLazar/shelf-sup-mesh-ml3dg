@@ -16,7 +16,7 @@ from config.config_flag import *
 FLAGS = flags.FLAGS
 
 def main(_):
-    torch.autograd.set_detect_anomaly(True)
+    # torch.autograd.set_detect_anomaly(True)
     train_test()
 
 def train_test():
