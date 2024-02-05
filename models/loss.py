@@ -10,7 +10,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from PerceptualSimilarity.models import dist_model
-
+from .clip_loss_transf import CLIPLossImg, CLIPLossImgTxt, CLIPLossTxt
 
 class LossMng():
     def __init__(self, FLAGS):
@@ -21,6 +21,13 @@ class LossMng():
         self.mse_loss =  MseLoss()
         self.losses = {}
         self.total_loss = None
+
+        #!~~
+        self.clip_loss_variants = {
+            'clip-txt': CLIPLossTxt(),
+            'clip-img': CLIPLossImg(),
+            'clip-img-txt': CLIPLossImgTxt()
+        }
         return
 
     def kl_loss(self, mu, logvar, target_mu=0, target_logvar=0, reduction='mean'):
@@ -82,6 +89,21 @@ class LossMng():
         union = (a + b - a * b).sum(dims) + eps
         loss = 1 - (intersect / union).sum() / intersect.nelement()
         return loss
+
+    #! ##### CLIP loss interface #####
+    def calc_clip_loss(self, fake_img, real_img=None, txt=None, ltype='img-txt', wgt=None, pref=''):
+        self.total_loss = None
+        loss = None
+        
+        if ltype == 'clip-txt':
+            loss = wgt * self.clip_loss_variants[ltype](fake_img, txt)
+        elif ltype == 'clip-img':
+            loss = wgt * self.clip_loss_variants[ltype](fake_img, real_img)
+        else: loss = wgt * self.clip_loss_variants[ltype](fake_img, real_img, txt)
+
+        self.add_losses(loss, pref + '_clip')
+        return self.total_loss
+
 
     ###### loss utils #####
     def add_losses(self, loss, name):
@@ -193,12 +215,24 @@ class PerceptualLoss(object):
         Pred and target are Variables.
         If normalize is on, scales images between [-1, 1] assuming the inputs are in range [0, 1].
         """
+            
+        # print('-----', type(pred), pred.shape)
+        # print('+++++', type(target), pred.shape)
+
+        # pil_immage: Image = tensor_to_image(target[0])
+        # pil_immage.save('temp.png')
+
         if normalize:
             target = 2 * target - 1
             pred = 2 * pred - 1
+
 
         dist = self.model.forward(pred, target.detach())
         if reduction == 'mean':
             # feature number = 5...
             dist = dist.mean()
         return dist
+
+
+###! Clip loss variants
+
