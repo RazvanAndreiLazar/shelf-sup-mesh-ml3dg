@@ -41,6 +41,8 @@ def build_dataset(args, name, split, is_train=True):
     # Openimages
     elif name[0:2] == 'oi':
         from .openimages import OpenImage as dset
+    elif name.startswith('3d'):
+        from .threedfuture import ThreeDFuture as dset
     else:
         raise NotImplementedError('not implemented %s' % name)
     dset = dset(args, name, split, is_train)

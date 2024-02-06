@@ -75,6 +75,7 @@ class BaseData(Dataset):
         sample['mask'] = self.get_mask(index)
         sample['bbox'] = self.get_bbox(index)
         sample['index'] = self.anno['rel_path'][index]
+        sample['text'] = self.anno['text'][index]
 
         if self.know_mean > 0:
             sample['mean_shape'] = self.get_mean_shape(index)
