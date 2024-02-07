@@ -10,7 +10,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from PerceptualSimilarity.models import dist_model
-from .clip_loss_transf import CLIPLossImg, CLIPLossImgTxt, CLIPLossTxt
+from .clip_loss_transf import CLIPLossTxt
 
 class LossMng():
     def __init__(self, FLAGS):
@@ -21,13 +21,8 @@ class LossMng():
         self.mse_loss =  MseLoss()
         self.losses = {}
         self.total_loss = None
-
-        #!~~
-        self.clip_loss_variants = {
-            'clip-txt': CLIPLossTxt(),
-            'clip-img': CLIPLossImg(),
-            'clip-img-txt': CLIPLossImgTxt()
-        }
+        self.clip_loss = CLIPLossTxt() #!~~
+        
         return
 
     def kl_loss(self, mu, logvar, target_mu=0, target_logvar=0, reduction='mean'):
@@ -91,15 +86,10 @@ class LossMng():
         return loss
 
     #! ##### CLIP loss interface #####
-    def calc_clip_loss(self, fake_img, real_img=None, txt=None, ltype='img-txt', wgt=None, pref=''):
+    def calc_clip_loss(self, fake_img, txt=None, wgt=None, pref=''):
         self.total_loss = None
-        loss = None
         
-        if ltype == 'clip-txt':
-            loss = wgt * self.clip_loss_variants[ltype](fake_img, txt)
-        elif ltype == 'clip-img':
-            loss = wgt * self.clip_loss_variants[ltype](fake_img, real_img)
-        else: loss = wgt * self.clip_loss_variants[ltype](fake_img, real_img, txt)
+        loss = wgt * self.clip_loss(fake_img, txt)
 
         self.add_losses(loss, pref + '_clip')
         return self.total_loss

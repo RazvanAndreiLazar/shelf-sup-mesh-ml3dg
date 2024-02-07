@@ -3,6 +3,7 @@ import tqdm
 import numpy as np
 from pathlib import Path
 from PIL import Image
+from typing import Dict
 
 from .basedata import BaseData
 
@@ -41,3 +42,9 @@ class ThreeDFuture(BaseData):
             self.anno['bbox'].append(bbox)
             self.anno['text'].append(text)
             self.anno['pointcloud'].append(pointcloud)
+
+    def clear_sample(self, sample: Dict):
+        out = super().clear_sample(sample)
+        out['text'] = sample['text']
+
+        return out

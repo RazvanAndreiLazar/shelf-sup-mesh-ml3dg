@@ -10,7 +10,7 @@ import torch
 
 
 def to_cuda(datapoint):
-    skip = ['index']
+    skip = ['index', 'text']
     for key in datapoint:
         if key in skip:
             continue

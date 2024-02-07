@@ -9,12 +9,8 @@ flags.DEFINE_string("exp", "default", "name of exp")
 flags.DEFINE_string("cfg_file", "config/cub.json", "")
 
 #! CLIP
-flags.DEFINE_integer('clip_loss_holo', 0, '')
-flags.DEFINE_integer('clip_loss', 1, '')
-
-flags.DEFINE_integer('clip_txt', 1, '')
-flags.DEFINE_integer('clip_img_txt', 0, '')
-flags.DEFINE_integer('clip_img', 0, '')
+flags.DEFINE_integer('clip_loss_holo', 100, '')
+flags.DEFINE_integer('clip_loss_recon', 0, '')
 
 # encoder
 flags.DEFINE_string("enc", "res", "kCam or res")
