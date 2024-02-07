@@ -123,7 +123,7 @@ class VoxTrainer(BaseTrainer):
         #!~~~
         recon_img = recon['image']
         holo_img = holo['image']
-        real_txt = ['chair' for _ in range(recon_img.shape[0])]      #TODO change this
+        real_txt = real_datapoint['text']      #TODO change this
         
         if FLAGS.clip_loss:
             clip_loss = self.get_clip_loss(recon_img, holo_img, real_img, real_txt)
