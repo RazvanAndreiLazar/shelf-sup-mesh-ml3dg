@@ -11,6 +11,8 @@ import pytorch3d.ops as op_3d
 from nnutils import geom_utils
 from .encoder import sample_z as enc_sample_z
 from .trainer import BaseTrainer
+import numpy as np
+
 FLAGS = flags.FLAGS
 
 
@@ -39,6 +41,12 @@ class VoxTrainer(BaseTrainer):
         # 2. generate fake image
         key = 'image_inp' if FLAGS.cyc_loss else 'mask_inp'
         (recon_z, img_feat), (view_v, param_v, param_u) = self.G.encode_content(real_datapoint[key])
+
+        # print('recon_z', type(recon_z), recon_z.shape) #!~~~
+        # print('img_feat', type(img_feat), len(img_feat))
+        # print('view_v', type(view_v), len(view_v))
+        # print('param_v', type(param_v), param_v.shape)
+        # print('param_u', type(param_u), param_u.shape)
 
         feat_world, vox_world = self.G.decoder.reconstruct_can(recon_z, view_v)
         recon = self.G.decoder.render_k_views((feat_world, img_feat), vox_world, recon_z, view_v)
@@ -112,6 +120,17 @@ class VoxTrainer(BaseTrainer):
                 e_loss += self.summerize_content_loss(
                     self.G.encoder(samp[key].detach()), sample_z, param_u2, 'hallc', FLAGS.content_loss)
 
+        #!~~~
+        recon_img = recon['image']
+        holo_img = holo['image']
+        real_txt = ['chair' for _ in range(recon_img.shape[0])]      #TODO change this
+        
+        if FLAGS.clip_loss:
+            clip_loss = self.get_clip_loss(recon_img, holo_img, real_img, real_txt)
+
+            e_loss += clip_loss
+            g_loss += clip_loss
+
         # Decoder step
         self.gen_opt.zero_grad()
         g_loss.backward(retain_graph=True)
@@ -168,3 +187,20 @@ class VoxTrainer(BaseTrainer):
         self.evaluator.vis_view(self.G, self.fix_val_data, num=8, view_mod='az',
                                 prefix='%d' % self.counter, save_dir=self.log_dir)
         self.evaluator.scatter_view(self.G, self.val_dataloader, self.log_dir, prefix='%d' % self.counter)
+
+    #!~~~
+    def get_clip_loss(self, recon_img, holo_img, real_img, real_txt):
+        def _loss(fake_img, real_img, real_txt, wgt, pref):
+            if FLAGS.clip_txt:
+                return self.lossMng.calc_clip_loss(fake_img, txt=real_txt, ltype='clip-txt', wgt=wgt, pref=pref)
+            if FLAGS.clip_img:
+                return self.lossMng.calc_clip_loss(fake_img, real_img=real_img, ltype='clip-img', wgt=wgt, pref=pref)
+            if FLAGS.clip_img_txt:
+                return self.lossMng.calc_clip_loss(fake_img, real_img, txt=real_txt, ltype='clip-img-txt', wgt=wgt, pref=pref)
+            return 0
+
+        clip_loss = None
+        clip_loss = _loss(recon_img, real_img, real_txt, FLAGS.clip_loss, 'recon')
+        if FLAGS.clip_loss_holo:
+            clip_loss += _loss(holo_img, real_img, real_txt, FLAGS.clip_loss_holo, 'holo')
+        return clip_loss
