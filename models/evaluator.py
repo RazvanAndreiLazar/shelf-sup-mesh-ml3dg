@@ -14,13 +14,16 @@ import torch
 import torch.nn.functional as F
 import tqdm
 import trimesh
-from pytorch3d.loss import mesh_edge_loss, mesh_normal_consistency
+from pytorch3d.loss import mesh_edge_loss, mesh_normal_consistency, chamfer_distance
 from pytorch3d.structures import Meshes
+from pytorch3d.ops import sample_points_from_meshes, iterative_closest_point
 
 from models.render_wrapper import MeshRenderWrapper
 from models.texturizer import TextureFactory
 from nnutils import geom_utils, image_utils, utils, mesh_utils
 from nnutils.laplacian_loss import mesh_laplacian_smoothing
+
+from nnutils.logger import Logger
 
 FLAGS = flags.FLAGS
 
@@ -374,3 +377,42 @@ class Evaluator(object):
             loss = loss.mean()
             # print('cyc', loss)
         return loss
+
+    #!~~~
+    def compute_model_metrics(self, model, dataloader, save_dir, prefix='model', datapoint=None,
+                              counter=None, logger=None):
+        save_dir = os.path.join(save_dir, prefix)
+
+        chamfer_dist = 0
+        n = 0
+
+        if datapoint is not None:
+            dataloader = [datapoint]
+        with torch.no_grad():
+            for i, datapoint in enumerate(dataloader):
+                datapoint = utils.to_cuda(datapoint)
+
+                (batch_z, _), (view_list, _, _) = model.encode_content(datapoint['image'])
+
+                _, vox_world = model.decoder.reconstruct_can(batch_z, view_list)
+                vox_mesh = mesh_utils.cubify(vox_world, FLAGS.mesh_th)
+
+                pred_pointcloud = sample_points_from_meshes(vox_mesh)
+                solution = iterative_closest_point(pred_pointcloud, datapoint['pointcloud'].to(torch.float32))
+                
+                adjusted_pointcloud = solution.Xt
+
+                # print(iterative_closest_point(adjusted_pointcloud, datapoint['pointcloud'].to(torch.float32)).rmse)
+
+                # print('---', adjusted_pointcloud.shape, datapoint['pointcloud'].shape)
+
+                dist = chamfer_distance(adjusted_pointcloud, datapoint['pointcloud'].to(torch.float32))
+                # print(dist)
+                chamfer_dist += dist[0].item()
+                n += 1
+
+                # print('===', chamfer_distance(pred_pointcloud, datapoint['pointcloud'].to(torch.float32)))
+
+        chamfer_dist /= n
+        print(f'Chamfer distance: {chamfer_dist}')
+        logger.add_loss(counter, {'Chamfer': chamfer_dist}, pref='Metrics/')

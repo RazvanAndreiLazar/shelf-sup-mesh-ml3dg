@@ -46,5 +46,15 @@ class ThreeDFuture(BaseData):
     def clear_sample(self, sample: Dict):
         out = super().clear_sample(sample)
         out['text'] = sample['text']
+        out['pointcloud'] = sample['pointcloud']
 
         return out
+
+    def get_datapoint(self, index):
+        sample = super().get_datapoint(index)
+        sample['pointcloud'] = self.anno['pointcloud'][index]
+
+        if self.know_mean > 0:
+            sample['mean_shape'] = self.get_mean_shape(index)
+
+        return sample

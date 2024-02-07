@@ -28,6 +28,12 @@ class Logger(object):
     def add_loss(self, t, dictionary, pref=''):
         for key in dictionary:
             name = pref + key.replace(':', '/')
+
+            self.tf_wr.add_scalar(name, dictionary[key], t)
+            
+    def add_metrics(self, t, dictionary, pref=''):
+        for key in dictionary:
+            name = pref + key.replace(':', '/')
             self.tf_wr.add_scalar(name, dictionary[key], t)
 
     def add_hist_by_dim(self, t, z, name='', max_dim=10):
