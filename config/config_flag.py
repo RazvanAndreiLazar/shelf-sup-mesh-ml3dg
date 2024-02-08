@@ -10,7 +10,7 @@ flags.DEFINE_string("cfg_file", "config/cub.json", "")
 
 #! CLIP
 flags.DEFINE_integer('clip_loss_holo', 100, '')
-flags.DEFINE_integer('clip_loss_recon', 0, '')
+flags.DEFINE_integer('clip_loss_recon', 100, '')
 
 # encoder
 flags.DEFINE_string("enc", "res", "kCam or res")

@@ -195,7 +195,9 @@ class VoxTrainer(BaseTrainer):
         self.evaluator.vis_view(self.G, self.fix_val_data, num=8, view_mod='az',
                                 prefix='%d' % self.counter, save_dir=self.log_dir)
         self.evaluator.scatter_view(self.G, self.val_dataloader, self.log_dir, prefix='%d' % self.counter)
-        self.evaluator.compute_model_metrics(self.G, self.val_dataloader, self.log_dir, counter=counter, logger=self.logger)
+        
+        if self.counter > 100:
+            self.evaluator.compute_model_metrics(self.G, self.val_dataloader, self.log_dir, counter=counter, logger=self.logger)
 
     #!~~~
     def get_clip_loss(self, recon_img, holo_img, real_txt):
