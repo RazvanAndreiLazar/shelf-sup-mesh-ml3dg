@@ -1,3 +1,5 @@
+# Semester project for ML3DG (Machine Learning for 3D Geometry) @TUM
+Our contribution can be seen [here](https://github.com/RazvanAndreiLazar/shelf-sup-mesh-ml3dg/blob/master/ML3D_Report.pdf)
 
 # Shelf-supervised Mesh Prediction in the wild 
 in CVPR 2021, Yufei Ye, Shubham Tulsiani, Abhinav Gupta
